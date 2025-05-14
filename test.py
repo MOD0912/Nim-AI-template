@@ -10,14 +10,19 @@ def test_get_q_value(ai):
 
 def test_update_q_value(ai):
     print("\n--- Testing update_q_value ---")
+    ai.update_q_value((0, 0, 0, 2), (3, 2), -1, 10, 5)
 
 
 def test_best_future_reward(ai):
     print("\n--- Testing best_future_reward ---")
+    future = ai.best_future_reward((0, 0, 0, 2))
+    print(future)
 
 
 def test_choose_action(ai):
     print("\n--- Testing choose_action ---")
+    action = ai.choose_action((0, 0, 0, 2))
+    print(f"Chosen action: {action}")
 
 
 if __name__ == "__main__":

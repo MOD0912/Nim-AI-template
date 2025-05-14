@@ -41,7 +41,7 @@ class NimAI():
 
     def update(self, old_state, action, new_state, reward):
         old_q = self.get_q_value(old_state, action)
-        best_future_q = self.best_future_reward(new_state)
+        best_future_q, best_action = self.best_future_reward(new_state)
         self.update_q_value(old_state, action, old_q, reward, best_future_q)
 
     def get_q_value(self, state, action):
@@ -56,33 +56,42 @@ class NimAI():
         float: The Q-value associated with the (state, action) pair. 
                Returns 0 if the pair is not yet in the Q-table.
     """
-        print(self.q)
+        state = tuple(state)
+        for i in self.q:
+            if i[0] == state and i[1] == action:
+                return self.q[i]
+        return 0
 
     def update_q_value(self, state, action, old_q, reward, future_q):
         """
-    Update the Q-value for a state-action pair using the Q-learning formula.
-    
-    Parameters:
-        state (list): The current game state.
-        action (tuple): The action taken.
-        old_q (float): The previous Q-value for the (state, action) pair.
-        reward (float): The reward received after taking the action.
-        future_q (float): The maximum Q-value for the next state.
-    """
-        raise NotImplementedError
-    
+        Update the Q-value for a state-action pair using the Q-learning formula.
+        """
+        state = tuple(state)  # Convert state to a tuple
+        self.q[(state, action)] = old_q + self.alpha * (reward + future_q - old_q)
+                
     def best_future_reward(self, state):
-            """
-    Determine the highest Q-value among all possible actions in a given state.
-    
-    Parameters:
-        state (list): The state for which to compute the best future reward.
+        """
+        Determine the highest Q-value among all possible actions in a given state.
         
-    Returns:
-        float: The highest Q-value among available actions. 
-               Returns 0 if no actions are available.
-    """
-            raise NotImplementedError
+        Parameters:
+            state (list): The state for which to compute the best future reward.
+            
+        Returns:
+            tuple: The highest Q-value among available actions and the corresponding action.
+                   Returns (0, None) if no actions are available.
+        """
+        state = tuple(state)
+        actions = Nim.available_actions(state)
+        if not actions:
+            return 0, None  # Return a tuple instead of a single value
+        best_q = float('-inf')
+        best_action = None
+        for action in actions:
+            q_value = self.get_q_value(state, action)
+            if q_value > best_q:
+                best_q = q_value
+                best_action = action
+        return best_q, best_action
 
     def choose_action(self, state, epsilon=True):
         """
@@ -95,7 +104,15 @@ class NimAI():
     Returns:
         tuple: The chosen action from the available actions.
     """
-        raise NotImplementedError
+        if epsilon and random.random() < self.epsilon:
+            actions = Nim.available_actions(state)
+            return random.choice(list(actions))
+        else:
+            best_q, action = self.best_future_reward(state)
+            if action is None:
+                actions = Nim.available_actions(state)
+                return random.choice(list(actions))
+            return action
 
 def train(n):
     player = NimAI()
@@ -121,3 +138,8 @@ def train(n):
                 player.update(last_move[game.player]["state"], last_move[game.player]["action"], new_state, 0)
 
     return player
+
+
+
+if __name__ == "__main__":
+    import play
